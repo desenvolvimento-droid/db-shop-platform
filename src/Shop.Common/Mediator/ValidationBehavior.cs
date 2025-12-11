@@ -38,16 +38,13 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
     {
         if (typeof(TResponse) == typeof(Result))
         {
-            // Para Result não genérico
             var result = ValidationError.Fail(failures);
             return (TResponse)(object)result;
         }
         else if (IsResultOfT<TResponse>())
         {
-            // Para Result<T> genérico
             var resultType = typeof(TResponse).GetGenericArguments()[0];
 
-            // Usar o método genérico ValidationError.Fail<T> que criamos
             var failMethod = typeof(ValidationError)
                 .GetMethod(nameof(ValidationError.Fail),
                     genericParameterCount: 1,

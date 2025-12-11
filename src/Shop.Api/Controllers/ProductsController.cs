@@ -1,10 +1,12 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Shop.Api.Controllers.Base;
 using Shop.Application.UseCases.Products.CreateProduct;
 using Shop.Application.UseCases.Products.DeleteProduct;
 using Shop.Application.UseCases.Products.GetProductById;
 using Shop.Application.UseCases.Products.GetProducts;
 using Shop.Application.UseCases.Products.UpdateProduct;
+using Shop.Application.UseCases.Results;
 using Shop.Common.Constants;
 using Shop.Models.Requests;
 
@@ -13,18 +15,15 @@ namespace Shop.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class ProductsController(
-        ISender mediator) : Controller
+    public class ProductsController(ISender mediator, ILogger<ProductsController> logger) 
+        : BaseController(logger)
     {
-        private readonly ISender _mediator = mediator;
-
-
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductResult>>> GetProducts()
         {
-            var productsDto = await _mediator.Send(new GetProductsQuery());
+            var productsDto = await mediator.Send(new GetProductsQuery());
             return Ok(productsDto);
         }
 
@@ -33,9 +32,9 @@ namespace Shop.Server.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetProductById(Guid productId)
+        public async Task<ActionResult<ProductResult>> GetProductById(Guid productId)
         {
-            var productDto = await _mediator.Send(new GetProductByIdQuery(productId));
+            var productDto = await mediator.Send(new GetProductByIdQuery(productId));
             if (productDto == null)
             {
                 return NotFound();
@@ -51,7 +50,10 @@ namespace Shop.Server.Controllers
         public async Task<IActionResult> CreateProduct(CreateProductRequest productRequest)
         {
             var productCmd = new CreateProductCommand(productRequest.Name, productRequest.Price);
-            var productCmdResult = await _mediator.Send(productCmd);
+            var productCmdResult = await mediator.Send(productCmd);
+
+            if (productCmdResult.IsFailed)
+                return HandleResult(productCmdResult);
 
             return CreatedAtAction(
                 nameof(GetProductById), 
@@ -73,9 +75,9 @@ namespace Shop.Server.Controllers
             }
 
             var productCmd = new UpdateProductCommand(productRequest.Id, productRequest.Name, productRequest.Price);
-            await _mediator.Send(productCmd);
+            var productCmdResult = await mediator.Send(productCmd);
 
-            return NoContent();
+            return HandleResult(productCmdResult);
         }
 
         [HttpDelete("{productId}")]
@@ -85,9 +87,9 @@ namespace Shop.Server.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteProduct(Guid productId)
         {
-            await _mediator.Send(new DeleteProductCommand(productId));
+            var productCmdResult = await mediator.Send(new DeleteProductCommand(productId));
 
-            return NoContent();
+            return HandleResult(productCmdResult);
         }
     }
 }
