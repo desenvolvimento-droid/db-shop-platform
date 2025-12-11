@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/References/">
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Src/" />
+  <Folder Name="/Src/Adapters/" />
+  <Folder Name="/Src/Adapters/Drivens/">
+    <Project Path="src/Shop.Dispatchers/Shop.Dispatcher.csproj" />
+    <Project Path="src/Shop.Persistence/Shop.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/Src/Adapters/Drivers/">
+    <Project Path="src/Shop.Api/Shop.Api.csproj" />
+  </Folder>
+  <Folder Name="/Src/Core/">
+    <Project Path="src/Shop.Application/Shop.Application.csproj" />
+    <Project Path="src/Shop.Domain/Shop.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Src/CrossCutting/">
+    <Project Path="src/Shop.Common/Shop.Common.csproj" />
+    <Project Path="src/Shop.IoC/Shop.IoC.csproj" />
+  </Folder>
+</Solution>
