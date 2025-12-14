@@ -52,8 +52,11 @@ public class CustomersController(ILogger<CustomersController> logger, ISender me
         var customerCmd = new CreateCustomerCommand(customerRequest.Name);
         var cmdResult = await mediator.Send(customerCmd);
 
-        if(cmdResult.IsFailed)
-            return HandleResult(cmdResult); 
+        if (cmdResult.IsFailed)
+        {
+            return HandleResult(cmdResult);
+        }
+            
 
         return CreatedAtAction(nameof(GetCustomerById), ControllerConstants.Customers,
             cmdResult.Value);
@@ -72,7 +75,8 @@ public class CustomersController(ILogger<CustomersController> logger, ISender me
         }
 
         var customerCmd = new UpdateCustomerCommand(customerRequest.Id, customerRequest.Name);
-        var cmdResult await mediator.Send(customerCmd);
+
+        var cmdResult = await mediator.Send(customerCmd);
 
         return HandleResult(cmdResult);
     }

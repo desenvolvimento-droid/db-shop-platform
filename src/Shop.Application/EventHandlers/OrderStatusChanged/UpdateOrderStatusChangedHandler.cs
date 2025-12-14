@@ -12,10 +12,18 @@ namespace Shop.Application.Event.EventHandlers
 
         public async Task Handle(OrderStatusChangedEvent notification, CancellationToken cancellationToken)
         {
-            var orderRm = await _orderDbRepository.GetByIdAsync(notification.Id);
-            orderRm.OrderStatus = notification.OrderStatus;
-            
-            await _orderDbRepository.UpdateAsync(notification.Id, orderRm);
+            var rm = await _orderDbRepository.GetByIdAsync(notification.Id);
+            if (rm == null)
+                throw new InvalidOperationException();
+
+            if (rm.LastEventVersion >= notification.Version)
+                return;
+
+            rm.OrderStatus = notification.OrderStatus;
+            rm.LastEventVersion = notification.Version;
+
+            await _orderDbRepository.UpdateAsync(notification.Id, rm);
         }
+
     }
 }

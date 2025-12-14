@@ -10,13 +10,21 @@ namespace Shop.Application.EventHandlers.Customers
         IDbRepository<CustomerReadModel> customerDbRepository,
         IMapper mapper) : INotificationHandler<CustomerCreatedEvent>
     {
-        private readonly IDbRepository<CustomerReadModel> _customerDbRepository = customerDbRepository;
-        private readonly IMapper _mapper = mapper;
 
         public async Task Handle(CustomerCreatedEvent notification, CancellationToken cancellationToken)
         {
-            var customerRm = _mapper.Map<CustomerReadModel>(notification);
-            await _customerDbRepository.InsertAsync(customerRm);
+            if (await customerDbRepository.FindByIdAsync(notification.Id) != null)
+                return;
+
+            var rm = new CustomerReadModel
+            {
+                Id = notification.Id,
+                Name = notification.Name,
+                LastEventVersion = notification.Version
+            };
+
+            await customerDbRepository.InsertAsync(rm);
         }
+
     }
 }

@@ -10,13 +10,19 @@ namespace Shop.Application.EventHandlers.CustomerChanged
         IDbRepository<CustomerReadModel> customerDbRepository,
         IMapper mapper) : INotificationHandler<CustomerChangedEvent>
     {
-        private readonly IDbRepository<CustomerReadModel> _customerDbRepository = customerDbRepository;
-        private readonly IMapper _mapper = mapper;
-
         public async Task Handle(CustomerChangedEvent notification, CancellationToken cancellationToken)
         {
-            var customerRm = _mapper.Map<CustomerReadModel>(notification);
-            await _customerDbRepository.UpdateAsync(notification.Id, customerRm);
+            var rm = await customerDbRepository.GetByIdAsync(notification.Id);
+            if (rm == null)
+                throw new InvalidOperationException(); 
+
+            if (rm.LastEventVersion >= notification.Version)
+                return;
+
+            rm.Name = notification.Name;
+            rm.LastEventVersion = notification.Version;
+
+            await customerDbRepository.UpdateAsync(notification.Id, rm);
         }
     }
 }
